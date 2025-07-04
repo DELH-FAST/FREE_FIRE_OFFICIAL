@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FFH Community Chat</title>
+  <style>
+    body {
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      margin: 0;
+    }
+    #chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      border-bottom: 2px solid #333;
+    }
+    .message {
+      margin-bottom: 10px;
+    }
+    .sender {
+      font-weight: bold;
+      color: gold;
+    }
+    #chat-input {
+      display: flex;
+      padding: 10px;
+      background: #111;
+    }
+    #chat-input input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      margin-right: 10px;
+    }
+    #chat-input button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background: gold;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center; background:#111; padding:10px; margin:0;">FFH Community Chat</h2>
+  <div id="chat-box"></div>
+  <div id="chat-input">
+    <input type="text" id="msg" placeholder="Type your message...">
+    <button onclick="sendMessage()">Send</button>
+  </div>
+<div id="flash-message" style="
+  background: #ff4444;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+">
+  🚨 Server is busy, may not reply to your chat. Contact us on Instagram:
+  <a href="https://www.instagram.com/freefire_hoster/" target="_blank" style="color: yellow; text-decoration: underline;">
+    @freefire_hoster
+  </a>
+</div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC3dF9iLsElsQC9Q8U26MtPhDbSWefwxmQ",
+      authDomain: "website-chat-f6cf6.firebaseapp.com",
+      projectId: "website-chat-f6cf6",
+      storageBucket: "website-chat-f6cf6.appspot.com",
+      messagingSenderId: "503149818440",
+      appId: "1:503149818440:web:87ba86cf88ad608a59de7d",
+      databaseURL: "https://website-chat-f6cf6-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const chatRef = ref(db, 'community-chat');
+
+    const msgBox = document.getElementById("msg");
+    const chatBox = document.getElementById("chat-box");
+
+    const user = localStorage.getItem("ff_user") || prompt("Enter your name:");
+    localStorage.setItem("ff_user", user);
+
+    // ✅ Define globally for button onclick
+    window.sendMessage = function () {
+      const text = msgBox.value.trim();
+      if (text !== "") {
+        push(chatRef, { name: user, message: text });
+        msgBox.value = "";
+      }
+    };
+
+    // 📥 Show new messages
+    onChildAdded(chatRef, (data) => {
+      const msg = data.val();
+      const div = document.createElement("div");
+      div.classList.add("message");
+      div.innerHTML = `<span class='sender'>${msg.name}:</span> ${msg.message}`;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+    setTimeout(() => {
+  const flash = document.getElementById("flash-message");
+  if (flash) flash.style.display = "none";
+}, 60000); // hides after 3600 seconds 1 day
+
+  </script>
+</body>
+</html>

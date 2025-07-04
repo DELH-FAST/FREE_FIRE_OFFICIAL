@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+</head>
+
+<body>
+  
+</body>
+
+</html>
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Free Fire Hosters</title>
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js"></script>
+  <style>
+    body {
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: gold;
+    }
+    .card {
+      background: #1a1a1a;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 15px auto;
+      max-width: 500px;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      width: 90%;
+      border-radius: 8px;
+      border: none;
+    }
+    button {
+      background: gold;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    a {
+      color: gold;
+      text-decoration: none;
+    }
+    .socials button {
+      margin: 8px;
+      padding: 10px 20px;
+      background: #333;
+      border: none;
+      border-radius: 8px;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1> FREE FIRE HOSTERS</h1>  <div class="card">
+
+   Welcome to Free Fire Hosters, a passionate gaming community built by players, for players. We specialize in organizing Free Fire tournaments that are fair, exciting, and open to everyone whether you're a casual player or a hardcore grinder.
+<br><br>
+Our mission is to create a fun, competitive, and well-managed platform where Free Fire lovers can showcase their skills, win exciting rewards, and grow as a community.
+<br><br><br><br>
+👑 Meet the Team:
+<br><br><br>
+Founder: Abhinav – Visionary behind Free Fire Hosters, always working to bring fresh ideas to the arena.
+<br><br>
+Chief Executive & Cyber Team Head: Aryan – The backbone of our system security and tournament setup.
+<br><br>
+Chief Representative & Adviser: Aditya – Ensures smooth coordination, guidance, and fair play.
+
+<br><br>
+
+
+
+We’re more than just a tournament hoster we're a growing community that values trust, transparency, and top-tier gameplay. Join us, compete, chat, and be part of something epic.
+<br><br><br><br><br><br><br><br>
+ <div class="card">
+    <h2>About Us</h2>
+    <p><strong>Founder:</strong> Abhinav</p>
+    <p><strong>Chief Executive & Cyber Team Head:</strong> Aryan</p>
+    <p><strong>Chief Representative & Adviser:</strong> Aditya</p>
+   <button style="background-color: gold; color: black; padding: 10px 20px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;" onclick="window.location.href='chat.html'">CHAT</button>
+  </div>
+
+  <div class="card">
+     <div class="socials">
+<button style="background-color: #E1306C; color: #fff; padding: 10px 20px; border: none; border-radius: 10px; font-weight: bold; margin: 10px; cursor: pointer;"
+onclick="window.open('https://www.instagram.com/freefire_hoster/profilecard/?igsh=MXg1NTRkOGIybDJ5MA==')">
+  📸 Instagram
+</button>
+<button style="background-color: #25D366; color: #fff; padding: 10px 20px; border: none; border-radius: 10px; font-weight: bold; margin: 10px; cursor: pointer;"
+onclick="window.open('https://whatsapp.com/channel/0029VbBIpDe90x31qrlqDW2H')">
+  💬 WhatsApp Channel
+</button>
+    </div>
+    <h2>Events</h2>
+    <button onclick="window.open('https://delh-fast.github.io/FREE_FIRE_REGISTRATION/')">Go to Registration</button>
+<button onclick="window.location.href='rules.html'">  📜 View Rules</button>
+
+
+    <button onclick="window.location.href='leaderboard.html'">View Leaderboard</button>
+    </div>
+         
+  </div> 
+  </div>  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC3dF9iLsElsQC9Q8U26MtPhDbSWefwxmQ",
+      authDomain: "website-chat-f6cf6.firebaseapp.com",
+      databaseURL: "https://website-chat-f6cf6-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      projectId: "website-chat-f6cf6",
+      storageBucket: "website-chat-f6cf6.appspot.com",
+      messagingSenderId: "503149818440",
+      appId: "1:503149818440:web:87ba86cf88ad608a59de7d"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.loginChat = function() {
+      const name = document.getElementById("name").value;
+      const uid = document.getElementById("uid").value;
+      const insta = document.getElementById("insta").value;
+
+      if (!name || !uid || !insta) {
+        alert("Please fill all fields");
+        return;
+      }
+
+      set(ref(db, "users/" + uid), {
+        name: name,
+        uid: uid,
+        insta: insta
+      }).then(() => {
+        localStorage.setItem("chat_uid", uid);
+        window.location.href = "chat.html";
+      });
+    }
+  </script></body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>FFH Leaderboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body { background: #111; color: #fff; font-family: Arial; text-align: center; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #222; }
+    th, td { padding: 10px; border: 1px solid #444; }
+    th { background: #333; color: gold; }
+    tr:nth-child(even) { background: #1a1a1a; }
+    input, button { padding: 8px; margin: 5px; border-radius: 5px; }
+  </style>
+
+  <!-- Load jsPDF -->
+  <script>
+    window.jsPDFReady = new Promise(resolve => {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      script.onload = () => resolve(window.jspdf);
+      document.head.appendChild(script);
+    });
+  </script>
+</head>
+<body>
+  <h1>🏆 Free Fire Hosters Leaderboard</h1>
+  <input type="text" id="searchInput" placeholder="Search by name or UID">
+
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Name</th>
+        <th>UID</th>
+        <th>Kills</th>
+        <th>Points</th>
+        <th>Certificate</th>
+      </tr>
+    </thead>
+    <tbody id="leaderboardBody"></tbody>
+  </table>
+
+  <!-- Firebase and Data Fetch -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDu63aBnziCht_cxsWhyXrnM7Q6Qu9pQdU",
+      authDomain: "ffh-leaderboard.firebaseapp.com",
+      databaseURL: "https://ffh-leaderboard-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      projectId: "ffh-leaderboard",
+      storageBucket: "ffh-leaderboard.appspot.com",
+      messagingSenderId: "741775542110",
+      appId: "1:741775542110:web:081728ad509b75bbf3f1cf"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const dbRef = ref(db, 'leaderboard');
+
+    onValue(dbRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const list = Object.entries(data).map(([uid, val]) => ({ uid, ...val }))
+        .sort((a, b) => b.points - a.points);
+
+      const body = document.getElementById("leaderboardBody");
+      body.innerHTML = "";
+
+      list.forEach((player, i) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${player.name}</td>
+          <td>${player.uid}</td>
+          <td>${player.kills}</td>
+          <td>${player.points}</td>
+          <td><button class="downloadBtn">Download</button></td>
+        `;
+        body.appendChild(row);
+
+        const btn = row.querySelector(".downloadBtn");
+        btn.addEventListener("click", () => {
+          downloadCertificate(player.name, player.uid, player.matchRank || "N/A", (i + 1).toString(), player.kills);
+        });
+      });
+    });
+
+    document.getElementById("searchInput").addEventListener("input", function () {
+      const keyword = this.value.toLowerCase();
+      document.querySelectorAll("#leaderboardBody tr").forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(keyword) ? "" : "none";
+      });
+    });
+  </script>
+
+  <!-- Certificate Generator -->
+  <script>
+    window.downloadCertificate = async function (name, uid, matchRank, killRank, kills) {
+      const jspdf = await window.jsPDFReady;
+      const { jsPDF } = jspdf;
+      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+
+      const img = new Image();
+      img.src = "certificate-bg.jpg"; // Background image must exist in same folder
+
+      img.onload = () => {
+        doc.addImage(img, 'JPEG', 0, 0, 297, 210);
+
+        const gold = [212, 175, 55];
+        const darkRed = [139, 0, 0];
+        const white = [255, 255, 255];
+        const skyBlue = [0, 128, 255];
+        const orange = [255, 140, 0];
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(30);
+        doc.setTextColor(...gold);
+        doc.text("Certificate of Achievement", 148.5, 35, { align: "center" });
+
+        doc.setTextColor(...white);
+        doc.setFontSize(18);
+        doc.text("This is to certify that", 148.5, 50, { align: "center" });
+
+        doc.setTextColor(...darkRed);
+        doc.setFont("times", "bold");
+        doc.setFontSize(26);
+        doc.text(name.toUpperCase(), 148.5, 68, { align: "center" });
+
+        doc.setTextColor(...white);
+        doc.setFont("courier", "bold");
+        doc.setFontSize(16);
+        doc.text(`UID: ${uid}`, 148.5, 80, { align: "center" });
+        doc.text(`Match Rank: ${matchRank}   |   Kill Rank: ${killRank}   |   Kills: ${kills}`, 148.5, 90, { align: "center" });
+
+        doc.setTextColor(...skyBlue);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(17);
+        doc.text("has participated in the FREE FIRE SOLO TOURNAMENT", 148.5, 105, { align: "center" });
+
+        doc.setFontSize(15);
+        doc.text("This certificate is awarded in recognition of your", 148.5, 120, { align: "center" });
+        doc.text("participation, skill, and sportsmanship.", 148.5, 130, { align: "center" });
+
+        doc.setFont("times", "italic");
+        doc.setFontSize(14);
+        doc.text("\"Keep grinding. Legends are not born, they are made.\"", 148.5, 145, { align: "center" });
+
+        doc.setTextColor(...orange);
+        doc.setFont("courier", "bold");
+        doc.setFontSize(16);
+        doc.text("— Free Fire Hosters", 148.5, 160, { align: "center" });
+
+        doc.save(`Certificate_${name}.pdf`);
+      };
+
+      img.onerror = () => {
+        alert("❌ certificate-bg.jpg not found.");
+      };
+    };
+  </script>
+</body>
+</html>
