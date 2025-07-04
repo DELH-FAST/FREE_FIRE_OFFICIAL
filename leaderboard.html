@@ -12,7 +12,23 @@
     tr:nth-child(even) { background: #1a1a1a; }
     input, button { padding: 8px; margin: 5px; border-radius: 5px; }
   </style>
+<div id="adminLogin">
+  <h3>🔐 Admin Login</h3>
+  <input type="password" id="adminPass" placeholder="Enter Admin Password" />
+  <button onclick="checkAdmin()">Login</button>
+</div>
 
+<div id="adminPanel" style="display:none; margin-top:30px;">
+  <h3>✏️ Add / Edit / Delete Player</h3>
+  <input type="text" id="pname" placeholder="Player Name" />
+  <input type="text" id="puid" placeholder="Free Fire UID" />
+  <input type="number" id="kills" placeholder="Kills" />
+  <input type="number" id="points" placeholder="Points" />
+  <input type="text" id="matchRank" placeholder="Match Rank (e.g., 1st)" />
+  <button onclick="addOrUpdatePlayer()">Save</button>
+  <button onclick="deletePlayer()">Delete</button>
+</div>
+  
   <!-- Load jsPDF -->
   <script>
     window.jsPDFReady = new Promise(resolve => {
@@ -160,5 +176,72 @@
       };
     };
   </script>
+  <script>
+  function checkAdmin() {
+    const pass = document.getElementById("adminPass").value;
+    if (pass === "FFDATALB") {
+      document.getElementById("adminPanel").style.display = "block";
+      document.getElementById("adminLogin").style.display = "none";
+    } else {
+      alert("❌ Incorrect password.");
+    }
+  }
+
+  function addOrUpdatePlayer() {
+    const name = document.getElementById("pname").value;
+    const uid = document.getElementById("puid").value;
+    const kills = parseInt(document.getElementById("kills").value);
+    const points = parseInt(document.getElementById("points").value);
+    const matchRank = document.getElementById("matchRank").value;
+
+    if (!name || !uid) return alert("Name and UID are required.");
+
+    const db = firebase.database();
+    db.ref('leaderboard/' + uid).set({
+      name,
+      uid,
+      kills,
+      points,
+      matchRank
+    }, (err) => {
+      if (err) {
+        alert("❌ Failed to save.");
+      } else {
+        alert("✅ Player data saved.");
+      }
+    });
+  }
+
+  function deletePlayer() {
+    const uid = document.getElementById("puid").value;
+    if (!uid) return alert("Enter UID to delete.");
+
+    const db = firebase.database();
+    db.ref('leaderboard/' + uid).remove((err) => {
+      if (err) {
+        alert("❌ Failed to delete.");
+      } else {
+        alert("✅ Player deleted.");
+      }
+    });
+  }
+
+  // Firebase SDK (non-module needed for admin JS)
+  const firebaseConfig = {
+    apiKey: "AIzaSyDu63aBnziCht_cxsWhyXrnM7Q6Qu9pQdU",
+    authDomain: "ffh-leaderboard.firebaseapp.com",
+    databaseURL: "https://ffh-leaderboard-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    projectId: "ffh-leaderboard",
+    storageBucket: "ffh-leaderboard.appspot.com",
+    messagingSenderId: "741775542110",
+    appId: "1:741775542110:web:081728ad509b75bbf3f1cf"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+</script>
+
+<!-- Firebase SDK for Admin Panel -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </body>
 </html>
