@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FFH Leaderboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+  body { background:#111; color:#fff; font-family:Arial; text-align:center; padding:20px; }
+  table { width:100%; border-collapse:collapse; margin-top:20px; background:#222; }
+  th, td { padding:10px; border:1px solid #444; }
+  th { background:#333; color:gold; }
+  tr:nth-child(even) { background:#1a1a1a; }
+  input, button { padding:8px; margin:5px; border-radius:5px; }
+  button { cursor:pointer; }
+</style>
+</head>
+
+<body>
+
+<h1>🏆 Free Fire Hosters Leaderboard</h1>
+
+<!-- 🔐 Admin Login -->
+<div id="adminLogin">
+  <h3>🔐 Admin Login</h3>
+  <input type="password" id="adminPass" placeholder="Enter Admin Password">
+  <button onclick="checkAdmin()">Login</button>
+</div>
+
+<!-- ✏️ Admin Panel -->
+<div id="adminPanel" style="display:none; margin-top:30px;">
+  <h3>✏️ Add / Edit / Delete Player</h3>
+  <input id="pname" placeholder="Player Name">
+  <input id="puid" placeholder="Free Fire UID">
+  <input id="kills" type="number" placeholder="Kills">
+  <input id="points" type="number" placeholder="Points">
+  <input id="matchRank" placeholder="Match Rank (optional)">
+  <br>
+  <button onclick="addOrUpdatePlayer()">Save</button>
+  <button onclick="deletePlayer()">Delete</button>
+</div>
+
+<!-- 🔍 Search -->
+<input id="searchInput" placeholder="Search by name or UID">
+
+<!-- 📊 Table -->
+<table>
+  <thead>
+    <tr>
+      <th>Rank</th>
+      <th>Name</th>
+      <th>UID</th>
+      <th>Kills</th>
+      <th>Points</th>
+      <th>Certificate</th>
+    </tr>
+  </thead>
+  <tbody id="leaderboardBody"></tbody>
+</table>
+
+<!-- 🔥 Firebase v8 -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+  var firebaseConfig = {
+    apiKey: "AIzaSyDu63aBnziCht_cxsWhyXrnM7Q6Qu9pQdU",
+    authDomain: "ffh-leaderboard.firebaseapp.com",
+    databaseURL: "https://ffh-leaderboard-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    projectId: "ffh-leaderboard",
+    storageBucket: "ffh-leaderboard.appspot.com",
+    messagingSenderId: "741775542110",
+    appId: "1:741775542110:web:081728ad509b75bbf3f1cf"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+</script>
+
+<!-- 🏆 Leaderboard Logic -->
+<script>
+  db.ref("leaderboard").on("value", snapshot => {
+    const data = snapshot.val() || {};
+    const players = Object.values(data);
+
+    // 🥇 Sort: Points (DESC) → Optional Kills (DESC)
+    players.sort((a, b) =>
+      (b.points || 0) - (a.points || 0) ||
+      (b.kills || 0) - (a.kills || 0)
+    );
+
+    const body = document.getElementById("leaderboardBody");
+    body.innerHTML = "";
+
+    players.forEach((player, index) => {
+      const rank = index + 1;
+      body.innerHTML += `
+        <tr>
+          <td>${rank}</td>
+          <td>${player.name}</td>
+          <td>${player.uid}</td>
+          <td>${player.kills}</td>
+          <td>${player.points}</td>
+          <td>
+            <button onclick="downloadCertificate(
+              '${player.name}',
+              '${player.uid}',
+              '${player.matchRank || "N/A"}',
+              '${rank}',
+              '${player.kills}'
+            )">Download</button>
+          </td>
+        </tr>
+      `;
+    });
+  });
+
+  // 🔍 Search
+  document.getElementById("searchInput").addEventListener("input", function () {
+    const val = this.value.toLowerCase();
+    document.querySelectorAll("#leaderboardBody tr").forEach(row => {
+      row.style.display = row.innerText.toLowerCase().includes(val) ? "" : "none";
+    });
+  });
+</script>
+
+<!-- ✏️ Admin Functions (FIXED) -->
+<script>
+  function checkAdmin() {
+    if (document.getElementById("adminPass").value === "FFDATALB") {
+      document.getElementById("adminLogin").style.display = "none";
+      document.getElementById("adminPanel").style.display = "block";
+    } else {
+      alert("❌ Wrong password");
+    }
+  }
+
+  function addOrUpdatePlayer() {
+    const nameVal = document.getElementById("pname").value;
+    const uidVal = document.getElementById("puid").value;
+    const killsVal = Number(document.getElementById("kills").value) || 0;
+    const pointsVal = Number(document.getElementById("points").value) || 0;
+    const matchRankVal = document.getElementById("matchRank").value || "";
+
+    if (!nameVal || !uidVal) {
+      alert("Name & UID required");
+      return;
+    }
+
+    db.ref("leaderboard/" + uidVal).set({
+      name: nameVal,
+      uid: uidVal,
+      kills: killsVal,
+      points: pointsVal,
+      matchRank: matchRankVal
+    }, err => {
+      alert(err ? "❌ Save failed" : "✅ Player saved");
+    });
+  }
+
+  function deletePlayer() {
+    const uidVal = document.getElementById("puid").value;
+    if (!uidVal) {
+      alert("Enter UID to delete");
+      return;
+    }
+
+    db.ref("leaderboard/" + uidVal).remove(err => {
+      alert(err ? "❌ Delete failed" : "✅ Player deleted");
+    });
+  }
+</script>
+
+<!-- 📜 Certificate -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  function downloadCertificate(name, uid, matchRank, rank, kills) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("landscape");
+
+    doc.setFontSize(28);
+    doc.text("Free Fire Hosters Tournament", 148, 40, { align:"center" });
+    doc.setFontSize(18);
+    doc.text(`Name: ${name}`, 148, 70, { align:"center" });
+    doc.text(`UID: ${uid}`, 148, 85, { align:"center" });
+    doc.text(`Rank: ${rank}`, 148, 100, { align:"center" });
+    doc.text(`Kills: ${kills}`, 148, 115, { align:"center" });
+    doc.text(`Match Rank: ${matchRank}`, 148, 130, { align:"center" });
+
+    doc.save(`Certificate_${name}.pdf`);
+  }
+</script>
+
+</body>
+</html>
